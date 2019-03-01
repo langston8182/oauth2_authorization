@@ -13,6 +13,8 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
 /**
  * @author dem9527
@@ -29,8 +31,16 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
     private PasswordEncoder passwordEncoder;
 
     @Bean
-    public TokenStore tokenStore() {
-        return new InMemoryTokenStore();
+    public JwtAccessTokenConverter accessTokenConverter() {
+        JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
+        jwtAccessTokenConverter.setSigningKey("jwt-key-should-be-secret");
+
+        return jwtAccessTokenConverter;
+    }
+
+    @Bean
+    public JwtTokenStore tokenStore() {
+        return new JwtTokenStore(accessTokenConverter());
     }
 
     @Override
@@ -55,6 +65,7 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
         endpoints
                 .tokenStore(tokenStore())
+                .accessTokenConverter(accessTokenConverter())
                 .authenticationManager(authenticationManager);
     }
 }
